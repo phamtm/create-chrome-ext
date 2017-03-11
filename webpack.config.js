@@ -16,14 +16,20 @@ const target = process.env.npm_lifecycle_event;
 const TARGET = {
   DEV: 'start',
   PRODUCTION: 'build',
-  DLL: 'build-dll',
 };
 const outputPath = path.resolve(__dirname, 'dist');
-const publicPath = '/static/';
+const publicPath = '/';
 
 const baseConfig = {
   entry: {
     app: './app/index.js',
+  },
+
+  output: {
+    path: outputPath,
+    publicPath: publicPath,
+    filename: '[name].[hash].js',
+    chunkFilename: "[name].app.[hash].js",
   },
 
   module: {
@@ -33,6 +39,7 @@ const baseConfig = {
         loader: 'happypack/loader?id=js',
         include: [/app/, /node_modules/],
       },
+      { test: /\.hbs/, loader: 'handlebars-template-loader', },
     ],
   },
 
@@ -46,10 +53,30 @@ const baseConfig = {
       id: 'js',
       loaders: [{
         path: 'babel-loader',
-        query: {
-          presets: ['es2015', 'stage-2'],
-        },
       }],
+    }),
+    new CleanWebpackPlugin([outputPath], {
+      verbose: true,
+      dry: false
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: './assets',
+        to: path.resolve(outputPath, 'assets'),
+      },
+    ], {}),
+    new CopyWebpackPlugin([
+      {
+        from: './manifest.json',
+        to: outputPath,
+      },
+    ], {}),
+    new HtmlWebpackPlugin({
+      hash: false,
+      filename: './index.html',
+      template: './index.hbs',
+      inject: 'body',
+      chunksSortMode: 'dependency',
     }),
   ],
 };
@@ -57,22 +84,15 @@ const baseConfig = {
 module.exports = function(env) {
   if (target === TARGET.DEV) {
     return webpackMerge.smart(baseConfig, {
-      entry: {
-        app: [
-          './app/index.js',
-        ],
-      },
-
       output: {
-        filename: 'app.js',
+        path: outputPath,
         publicPath: publicPath,
-        sourceMapFilename: '[name].js.map',
+        filename: '[name].[hash].js',
+        chunkFilename: "[name].app.[hash].js",
       },
-
+      watch: true,
       devtool: 'source-map',
-
       plugins: [
-        new webpack.HotModuleReplacementPlugin(),
         new webpack.NoEmitOnErrorsPlugin(),
       ],
     });
@@ -86,16 +106,8 @@ module.exports = function(env) {
         filename: '[name].[chunkhash].js',
         chunkFilename: "[name].app.[chunkhash].js",
       },
-      module: {
-        loaders: [
-          // sadly we cannot use happypack here as ExtractTextPlugin is not supported https://github.com/amireh/happypack/issues/12
-          // { test: /\.scss$/, loader: ExtractTextPlugin.extract('css-loader!postcss-loader!sass-loader'), },
-          { test: /\.hbs/, loader: 'handlebars-template-loader', },
-        ],
-      },
       devtool: 'true', // this is to patch ParallelUglifyPlugin as it expects a `devtool` option explicitly but doesn't care what it is
       plugins: [
-        // new webpack.SourceMapDevToolPlugin('[file].map', '//# sourceMappingURL=' + ROOT_DOMAIN + '/assets/[url]'),
         // new ExtractTextPlugin('app.[contenthash].css'),
         new ParallelUglifyPlugin({
           uglifyJS: {
@@ -103,10 +115,6 @@ module.exports = function(env) {
               warnings: false
             }
           }
-        }),
-        new CleanWebpackPlugin([outputPath], {
-          verbose: true,
-          dry: false,
         }),
         new HtmlWebpackPlugin({
           hash: false,
@@ -117,7 +125,6 @@ module.exports = function(env) {
         }),
       ].concat(env.bundleStats ? [new BundleAnalyzerPlugin()] : []),
       bail: true,
-      recordsPath: path.resolve(__dirname, '.webpack-path-record'),
     });
   }
 
