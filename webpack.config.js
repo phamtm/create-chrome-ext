@@ -28,22 +28,25 @@ const baseConfig = {
   output: {
     path: outputPath,
     publicPath: publicPath,
-    filename: '[name].[hash].js',
-    chunkFilename: "[name].app.[hash].js",
+    filename: '[name].[contenthash].js',
+    // chunkFilename: "[name].app.[hash].js",
   },
 
   module: {
-    loaders: [
+    rules: [
+      { test: /\.jsx?$/, loader: 'happypack/loader?id=js', include: [/app/, /node_modules/] },
+      { test: /\.hbs/, loader: 'handlebars-template-loader' },
       {
-        test: /\.jsx?$/,
-        loader: 'happypack/loader?id=js',
-        include: [/app/, /node_modules/],
+        test: /\.scss$/,
+        use: ExtractTextPlugin.extract({
+            use: 'css-loader!postcss-loader!sass-loader'
+        })
       },
-      { test: /\.hbs/, loader: 'handlebars-template-loader', },
     ],
   },
 
   plugins: [
+    new ExtractTextPlugin('app.[contenthash].css'),
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(JSON.parse(process.env.DEBUG || 'false')),
       'process.env.NODE_ENV': target === TARGET.DEV ? '"dev"' : '"production"',
@@ -97,8 +100,8 @@ module.exports = function(env) {
       output: {
         path: outputPath,
         publicPath: publicPath,
-        filename: '[name].[hash].js',
-        chunkFilename: "[name].app.[hash].js",
+        filename: '[name].[chunkhash].js',
+        chunkFilename: "[name].app.[chunkhash].js",
       },
       watch: true,
       devtool: 'source-map',
@@ -114,11 +117,9 @@ module.exports = function(env) {
         path: outputPath,
         publicPath: publicPath,
         filename: '[name].[chunkhash].js',
-        chunkFilename: "[name].app.[chunkhash].js",
       },
       devtool: 'true', // this is to patch ParallelUglifyPlugin as it expects a `devtool` option explicitly but doesn't care what it is
       plugins: [
-        // new ExtractTextPlugin('app.[contenthash].css'),
         new ParallelUglifyPlugin({
           uglifyJS: {
             compress: {
@@ -130,7 +131,6 @@ module.exports = function(env) {
       bail: true,
     });
   }
-
 
   else
     return baseConfig;

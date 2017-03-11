@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import { connect } from 'preact-redux';
 
-import { countUp, countDown } from './action';
+import { countUp, countDown } from '../action';
 
 class App extends Component {
   render() {
