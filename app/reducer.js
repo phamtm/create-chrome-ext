@@ -1,8 +1,18 @@
-import { createStore, applyMiddleware, compose } from 'redux';
-import createSagaMiddleware from 'redux-saga';
+import * as types from './actionType';
 
-const sagaMiddleware = createSagaMiddleware();
-const storeEnhancer = compose(applyMiddleware(sagaMiddleware));
+const init = 0;
 
-const store = createStore({}, null, storeEnhancer);
-// sagaMiddleware.run();
+function count(state = init, action) {
+  switch (action.type) {
+    case types.COUNT_DOWN:
+      return state - 1;
+    case types.COUNT_UP:
+      return state + 1;
+    default:
+      return state;
+  }
+}
+
+export default {
+  count
+};

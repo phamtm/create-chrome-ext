@@ -46,13 +46,23 @@ const baseConfig = {
   plugins: [
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(JSON.parse(process.env.DEBUG || 'false')),
-      // __ROOT_PATH__: JSON.stringify(ROOT_PATH),
       'process.env.NODE_ENV': target === TARGET.DEV ? '"dev"' : '"production"',
     }),
     new HappyPackPlugin({
       id: 'js',
       loaders: [{
         path: 'babel-loader',
+        query: {
+          "sourceMaps": true,
+          "presets": [
+            ["es2015", { "loose":true }],
+            "stage-2"
+          ],
+          "plugins": [
+            ["transform-decorators-legacy"],
+            ["transform-react-jsx", { "pragma": "h" }]
+          ]
+        }
       }],
     }),
     new CleanWebpackPlugin([outputPath], {
@@ -115,13 +125,6 @@ module.exports = function(env) {
               warnings: false
             }
           }
-        }),
-        new HtmlWebpackPlugin({
-          hash: false,
-          filename: './index.html',
-          template: './index.hbs',
-          inject: 'body',
-          chunksSortMode: 'dependency',
         }),
       ].concat(env.bundleStats ? [new BundleAnalyzerPlugin()] : []),
       bail: true,
