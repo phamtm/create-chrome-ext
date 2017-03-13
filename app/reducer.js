@@ -14,5 +14,5 @@ function count(state = init, action) {
 }
 
 export default {
-  count
+  count,
 };

@@ -59,11 +59,11 @@ const baseConfig = {
           "sourceMaps": true,
           "presets": [
             ["es2015", { "loose":true }],
-            "stage-2"
+            "stage-2",
+            "react",
           ],
           "plugins": [
             ["transform-decorators-legacy"],
-            ["transform-react-jsx", { "pragma": "h" }]
           ]
         }
       }],

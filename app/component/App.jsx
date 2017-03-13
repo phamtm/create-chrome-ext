@@ -1,5 +1,5 @@
-import { h, Component } from 'preact';
-import { connect } from 'preact-redux';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import { countUp, countDown } from '../action';
 
@@ -17,11 +17,11 @@ class App extends Component {
 
 function mapStateToProps(state) {
   return {
-    count: state.count
+    count: state.count,
   };
 }
 
 export default connect(mapStateToProps, {
   countDown,
-  countUp
+  countUp,
 })(App);
